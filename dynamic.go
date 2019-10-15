@@ -1,3 +1,6 @@
+// Package gowebcompress applies top compression hueristics to
+// offer a dynamic (for APIs) and Static http middleware to
+// accelerate your server.
 package gowebcompress
 
 import (
@@ -85,32 +88,41 @@ func (o *outBuf) Write(b []byte) (i int, err error) {
 	return o.compressor.Write(b)
 }
 
-func (o *outBuf) getCompressWriter(req *http.Request, output io.Writer) (wc io.WriteCloser, encoding int, err error) {
-	var cmp io.WriteCloser
+func (o *outBuf) getCompressWriter(req *http.Request, output io.Writer) (input io.WriteCloser, encoding int, err error) {
 	encoding = o.shouldCompress()
-	h := o.ResponseWriter.Header()
+	input, err = makeCompressor(encoding, o.ResponseWriter)
+	return input, encoding, err
+}
+func makeCompressor(encoding int, w http.ResponseWriter) (input io.WriteCloser, err error) {
+	var cmp io.WriteCloser
+	h := w.Header()
 	switch encoding {
 	case gzType:
-		cmp, err = gzip.NewWriterLevel(output, 4)
+		cmp, err = gzip.NewWriterLevel(w, 4)
 		if err != nil {
-			return nil, 0, err
+			return nil, err
 		}
-		rmContentLength(h)
-		h.Set("Content-Encoding", "gzip")
+		headersFor(h, encoding)
 	case brType:
-		cmp = enc.NewBrotliWriter(brotliParam, output)
-		rmContentLength(h)
-		h.Set("Content-Encoding", "br")
+		cmp = enc.NewBrotliWriter(brotliParam, w)
+		headersFor(h, encoding)
 	default:
-		cmp = &fakecloser{output} // closer may be double-called
+		cmp = &fakecloser{w} // closer may be double-called
 	}
-	h.Set("Vary", "Accept-Encoding")
-	return cmp, encoding, nil
+	h.Set("Vary", "Accept-Encoding") // Tells CDNs to respect Accept-Encoding
+	return cmp, nil
 }
 
-func rmContentLength(h http.Header) {
+var ceString = map[int]string{
+	gzType: "gzip",
+	brType: "br",
+	none:   "identity",
+}
+
+func headersFor(h http.Header, encoding int) {
 	delete(h, "content-length")
 	delete(h, "Content-Length")
+	h.Set("Content-Encoding", ceString[encoding])
 }
 
 type fakecloser struct {
@@ -132,8 +144,12 @@ func (o *outBuf) shouldCompress() int {
 	}
 
 	// The browser wants...
-	ae := o.req.Header.Get("Accept-Encoding")
-	if strings.Contains(ae, "br") && (o.req.TLS != nil || o.req.Header.Get("X-Forwarded-Proto") == "https") {
+	return browserWants(o.req)
+}
+
+func browserWants(r *http.Request) int {
+	ae := r.Header.Get("Accept-Encoding")
+	if strings.Contains(ae, "br") && (r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https") {
 		return brType
 	}
 	if strings.Contains(ae, "gzip") {
