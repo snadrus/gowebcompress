@@ -1,4 +1,4 @@
-[![](https://godoc.org/github.com/snadrus/gowebcompress?status.svg)](http://godoc.org/github.com/snadrus/gowebcompress)
+[![](https://godoc.org/github.com/snadrus/gowebcompress?status.svg)](http://godoc.org/github.com/snadrus/gowebcompress) [![Build Status](http://img.shields.io/travis/snadrus/gowebcompress.svg?style=flat-square)](https://travis-ci.org/snadrus/gowebcompress)     [![Coverage Status](https://coveralls.io/repos/github/snadrus/gowebcompress/badge.svg?branch=master)](https://coveralls.io/github/snadrus/gowebcompress?branch=master)    [![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=C6284X93YL4WA)
 # gowebcompress
 *Optimal GO web compression.*
 
