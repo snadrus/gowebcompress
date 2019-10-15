@@ -1,0 +1,12 @@
+language: go
+
+go:
+  - 1.13
+  - master
+
+notifications:
+  email: false
+before_install:
+  - go get github.com/mattn/goveralls
+script:
+  - $HOME/gopath/bin/goveralls -service=travis-ci
