@@ -48,21 +48,30 @@ var bufpool = &sync.Pool{
 // Logs to a stat collector (if not nil)
 func Dynamic(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		buf := &outBuf{nil, req, w, nil, w, none}
+		buf, closer := DynamicDIY(w, req)
+		defer closer()
+		handler.ServeHTTP(buf, req)
+	})
+}
+
+// DynamicDIY makes it easy for wrapping for custom routers (ex: Gin)
+func DynamicDIY(w http.ResponseWriter, req *http.Request) (newWriter http.ResponseWriter, complete func()) {
+	buf := &outBuf{nil, req, w, nil, w, none}
+	return buf, func() {
 		defer func() {
 			if buf.b != nil {
 				bufpool.Put(buf.b[:0])
 			}
 		}()
-		handler.ServeHTTP(buf, req) // Do processing
-		if buf.compressor != nil {  // If there's data in compressor, finalize it
+
+		if buf.compressor != nil { // If there's data in compressor, finalize it
 			buf.compressor.Close() // Ignore close errors since part-written already.
 		}
 		if _, err := buf.output.Write(buf.b); err != nil {
 			log.Println(err)
 			return
 		}
-	})
+	}
 }
 
 func (o *outBuf) Write(b []byte) (i int, err error) {
