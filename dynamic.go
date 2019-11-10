@@ -131,7 +131,11 @@ var ceString = map[int]string{
 func headersFor(h http.Header, encoding int) {
 	delete(h, "content-length")
 	delete(h, "Content-Length")
-	h.Set("Content-Encoding", ceString[encoding])
+	ce := "Content-Encoding"
+	if h.Get("Content-Range") != "" {
+		ce = "TE"
+	}
+	h.Set(ce, ceString[encoding])
 }
 
 type fakecloser struct {
