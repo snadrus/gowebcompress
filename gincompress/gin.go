@@ -9,7 +9,7 @@ import (
 
 // Dynamic provides gowebcomress dynamic to gin Use().
 // Set custom values in gowebcompress directly.
-func Dynamic(c *gin.Context) {
+func Dynamic(c gin.Context) {
 	buf, closer := gowebcompress.DynamicDIY(c.Writer, c.Request)
 	defer closer()
 	orig := c.Writer
