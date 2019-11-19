@@ -19,11 +19,7 @@ const (
 	brType = iota
 )
 
-var brotliParam = enc.NewBrotliParams()
-
-func init() {
-	brotliParam.SetQuality(3)
-}
+var brotliParam = enc.BrotliWriterOptions{Quality:3}
 
 type outBuf struct {
 	b                   []byte
@@ -112,7 +108,7 @@ func makeCompressor(encoding int, w http.ResponseWriter) (input io.WriteCloser, 
 		}
 		headersFor(h, encoding)
 	case brType:
-		cmp = enc.NewBrotliWriter(brotliParam, w)
+		cmp = enc.NewBrotliWriter(w, brotliParam)
 		headersFor(h, encoding)
 	default:
 		cmp = &fakecloser{w} // closer may be double-called
