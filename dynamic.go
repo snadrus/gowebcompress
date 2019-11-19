@@ -19,7 +19,7 @@ const (
 	brType = iota
 )
 
-var brotliParam = enc.BrotliWriterOptions{Quality:3}
+var brotliParam = &enc.BrotliWriterOptions{Quality:3}
 
 type outBuf struct {
 	b                   []byte

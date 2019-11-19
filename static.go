@@ -228,10 +228,8 @@ func (s *StaticObj) makeStaticCompressed(srcPath string, encoding int, level int
 			return err
 		}
 	} else {
-		brotliParam := enc.NewBrotliParams()
-
-		brotliParam.SetQuality(level)
-		cmp := enc.NewBrotliWriter(brotliParam, outFile)
+		brotliParam := &enc.BrotliWriterOptions{Quality:level}
+		cmp := enc.NewBrotliWriter(outFile, brotliParam)
 		if _, err := io.Copy(cmp, input); err != nil {
 			return err
 		}
