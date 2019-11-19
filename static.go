@@ -12,7 +12,7 @@ import (
 	"runtime"
 	"sync"
 
-	"gopkg.in/kothar/brotli-go.v0/enc"
+	"github.com/itchio/go-brotli/enc"
 )
 
 // StaticOpts are NewStatic input for options.
