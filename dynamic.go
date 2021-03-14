@@ -5,11 +5,13 @@ package gowebcompress
 
 import (
 	"compress/gzip"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"strings"
 	"sync"
+
 	"github.com/itchio/go-brotli/enc"
 )
 
@@ -19,7 +21,7 @@ const (
 	brType = iota
 )
 
-var brotliParam = &enc.BrotliWriterOptions{Quality:3}
+var brotliParam = &enc.BrotliWriterOptions{Quality: 3}
 
 type outBuf struct {
 	b                   []byte
@@ -106,9 +108,11 @@ func makeCompressor(encoding int, w http.ResponseWriter) (input io.WriteCloser, 
 		if err != nil {
 			return nil, err
 		}
+		fmt.Println("isGzip")
 		headersFor(h, encoding)
 	case brType:
 		cmp = enc.NewBrotliWriter(w, brotliParam)
+		fmt.Println("isBrotli")
 		headersFor(h, encoding)
 	default:
 		cmp = &fakecloser{w} // closer may be double-called
