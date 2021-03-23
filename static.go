@@ -1,5 +1,6 @@
 package gowebcompress
 
+/*
 import (
 	"compress/gzip"
 	"errors"
@@ -266,3 +267,4 @@ func (s *StaticObj) makeStaticCompressed(srcPath string, encoding int, level int
 
 // Good-to-serve: .gz .br    in-progress: .gztmp .brtmp
 // if walker is done & miss occurs, restart walker.
+*/

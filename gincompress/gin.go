@@ -3,19 +3,36 @@ package gincompress
 import (
 	"net/http"
 
+	"bitbucket.org/pianoexpressapp/server/hp/gowebcompress"
 	"github.com/gin-gonic/gin"
-	"github.com/snadrus/gowebcompress"
 )
 
 // Dynamic provides gowebcomress dynamic to gin Use().
 // Set custom values in gowebcompress directly.
 func Dynamic(c *gin.Context) {
-	buf, closer := gowebcompress.DynamicDIY(c.Writer, c.Request)
-	defer closer()
 	orig := c.Writer
+	buf, closer := gowebcompress.Handler(c.Writer, c.Request)
+	defer closer()
 	c.Writer = &writer{c.Writer, buf}
 	c.Next()
 	c.Writer = orig
+	for _, e := range buf.(gowebcompress.CacheInfo).GetErrors() {
+		c.Error(e)
+	}
+}
+
+func DiskCacheMiddleware(cacheControlHeader, basepath, urlPrefix string) func(*gin.Context) {
+	opts := gowebcompress.CacheOpts{
+		FS:         gowebcompress.NewOSFSStat("/"),
+		CreateFile: gowebcompress.OSCreate,
+		BasePath:   basepath}
+	return func(c *gin.Context) {
+		c.Header("cache-control", cacheControlHeader)
+		if gowebcompress.FS(c.Writer.(*writer).w, opts, c.Request.URL.EscapedPath()[len(urlPrefix):]) {
+			c.AbortWithStatus(200) // Bytes sent from Disk Cache
+			return
+		}
+	}
 }
 
 // TODO statics. Tricky: HEAD. Accept Range, TE (transfer encoding)
