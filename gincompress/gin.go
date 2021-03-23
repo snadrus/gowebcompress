@@ -3,8 +3,8 @@ package gincompress
 import (
 	"net/http"
 
-	"bitbucket.org/pianoexpressapp/server/hp/gowebcompress"
 	"github.com/gin-gonic/gin"
+	"github.com/snadrus/gowebcompress"
 )
 
 // Dynamic provides gowebcomress dynamic to gin Use().
