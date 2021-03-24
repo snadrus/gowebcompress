@@ -14,6 +14,7 @@ import (
 	"path"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/itchio/go-brotli/enc"
 )
@@ -234,9 +235,10 @@ func (m *fsCache) WriteMIME(s string) {
 }
 
 func (o *outBuf) FS(sys fs.FS, origPath string, creat CreateFile, staticBase string) (handled bool) {
-	if o.req.Method != http.MethodGet { //TODO LATER GET IF NEWER?
+	if o.req.Method != http.MethodGet {
 		return false // don't cache
 	}
+
 	origFullPath := path.Join(staticBase, origPath)
 	if !strings.HasPrefix(origFullPath, staticBase) {
 		o.Errors = append(o.Errors, errors.New("Illegal path: "+origFullPath))
@@ -259,6 +261,14 @@ func (o *outBuf) FS(sys fs.FS, origPath string, creat CreateFile, staticBase str
 		if err != nil || compressedStat.IsDir() || origStat.IsDir() {
 			return false // no file. No future.
 		}
+		if h := o.req.Header.Get("if-modified-since"); len(h) > 0 {
+			if t, err := time.Parse(time.RFC1123, h); err == nil {
+				if origStat.ModTime().Before(t) {
+					o.ResponseWriter.WriteHeader(304)
+					return true
+				}
+			}
+		}
 		// Compare timestamps orig vs disk. if newer, write & handled.
 		if compressedStat.ModTime().After(origStat.ModTime()) {
 			mimepath := origFullPath + ".mime"
@@ -273,6 +283,7 @@ func (o *outBuf) FS(sys fs.FS, origPath string, creat CreateFile, staticBase str
 				return false
 			}
 			defer f.Close()
+
 			fm, err := st.Open(mimepath)
 			if err != nil {
 				o.Errors = append(o.Errors, fmt.Errorf("open err: %w", err))
