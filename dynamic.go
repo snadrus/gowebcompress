@@ -18,8 +18,8 @@ import (
 	"github.com/itchio/go-brotli/enc"
 )
 
-var DynamicLevels = Levels{4, 3}
-var StaticLevels = Levels{9, 10}
+var DynamicLevels = Levels{2, 2}
+var StaticLevels = Levels{6, 4}
 
 const (
 	none   = iota
