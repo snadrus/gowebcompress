@@ -90,7 +90,7 @@ func (o *outBuf) Write(b []byte) (i int, err error) {
 	if o.compressor == nil {
 		if len(o.b)+len(b) < 1024 { // under 1024 bytes
 			if o.b == nil {
-				o.b = bufpool.Get().([]byte)
+				o.b = bufpool.Get().([]byte)[:0]
 			}
 			o.b = append(o.b, b...) // Copy. Never keep "b"
 			return len(b), nil
