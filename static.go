@@ -15,6 +15,7 @@ import (
 
 	"github.com/itchio/go-brotli/enc"
 )
+// TODO modernize this to work as expected.
 
 // StaticOpts are NewStatic input for options.
 type StaticOpts func(*StaticObj)
